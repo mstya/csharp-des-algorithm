@@ -87,17 +87,14 @@ namespace DES
 
         public void ReplaceAndRemoveKeyBits()
         {
-            //BitArray bitArray = new BitArray(56);
             List<bool> bitList = new List<bool>();
 
             for (int i = 0; i < replaceKeyPositions.Count; i++)
             {
                 bool bit = this.Key64Bits[replaceKeyPositions[i] - 1];
-               // bitArray[i] = bit;
                 bitList.Add(bit);
             }
 
-            //this.ReplacedKey = bitArray;
             this.replacedKeyList = bitList;
         }
 
@@ -107,6 +104,9 @@ namespace DES
             {
                 throw new ArgumentException("Ivalid round index");
             }
+
+            this.Generate64BitKey();
+            this.ReplaceAndRemoveKeyBits();
 
             List<bool> c0 = this.replacedKeyList.Take(28).ToList();
             List<bool> d0 = this.replacedKeyList.Skip(28).Take(28).ToList();
