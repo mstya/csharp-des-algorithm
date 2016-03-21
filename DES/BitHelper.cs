@@ -17,6 +17,26 @@ namespace DES
             Console.WriteLine();
         }
 
+        public static void PrintBitArray(IList<int> bits)
+        {
+            foreach (var item in bits)
+            {
+                Console.Write(item);
+            }
+
+            Console.WriteLine();
+        }
+
+        public static void PrintBitArray(BitArray array)
+        {
+            foreach (bool item in array)
+            {
+                Console.Write(item ? "1" : "0");
+            }
+
+            Console.WriteLine();
+        }
+
         public static List<bool> ShiftLeft(IList<bool> aSource, int shiftOn)
         {
             bool[] new_arr = new bool[aSource.Count];

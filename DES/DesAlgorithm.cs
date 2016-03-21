@@ -2,16 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DES
 {
-    class DesAlgorithm
+    internal class DesAlgorithm
     {
-        private BitArray keyBits;
-
-        private List<int> replacePositions = new List<int>()
+        private readonly List<int> initialPermutationIndexes = new List<int>
         {
             58, 50, 42, 34, 26, 18, 10, 2,
             60, 52, 44, 36, 28, 20, 12, 4,
@@ -23,7 +19,7 @@ namespace DES
             63, 55, 47, 39, 31, 23, 15, 7
         };
 
-        private List<int> expansionPositions = new List<int>()
+        private readonly List<int> pBoxExpansion = new List<int>
         {
             32,  1,  2,  3,  4,  5,
              4,  5,  6,  7,  8,  9,
@@ -35,15 +31,11 @@ namespace DES
             28, 29, 30, 31, 32,  1
         };
 
+        private KeyManager keyManager;
+
         public DesAlgorithm(string key)
         {
-            byte[] keyBytes = Encoding.ASCII.GetBytes(key);
-            this.keyBits = new BitArray(keyBytes);
-
-            if (this.keyBits.Count != 56)
-            {
-                throw new Exception("key bits length = " + this.keyBits.Count);
-            }
+            this.keyManager = new KeyManager(key);
         }
 
         public BitArray InitialPermutation(BitArray bits)
@@ -54,42 +46,70 @@ namespace DES
             }
 
             BitArray bitArray = new BitArray(64);
-            string replacedBits = string.Empty;
             for (int i = 0; i < bits.Length; i++)
             {
-                bitArray[i] = bits[replacePositions[i] - 1];
+                bitArray[i] = bits[initialPermutationIndexes[i] - 1];
             }
 
             return bitArray;
         }
 
-        public string BitExpansion(BitArray bits)
+        public BitArray ApplyPBoxTo32(BitArray bits)
         {
             if (bits.Length != 32)
             {
                 throw new Exception("bits length = " + bits.Length);
             }
 
-            string expansion = string.Empty;
-
-            for (int i = 0; i < expansionPositions.Count; i++)
+            //List<bool> pBoxedBits = new List<bool>();
+            bool[] pBoxedBits = new bool[48];
+            for (int i = 0; i < pBoxExpansion.Count; i++)
             {
-                expansion += bits[expansionPositions[i] - 1];
+                pBoxedBits[i] = bits[pBoxExpansion[i] - 1];
             }
 
-            return expansion;
+            return new BitArray(pBoxedBits);
         }
 
-        public static BitArray GetLeft32Bits(BitArray array64)
+        public BitArray GetLeft32Bits(BitArray array64)
         {
             IEnumerable<bool> bit32Collection = array64.Cast<bool>().Take(32);
             return new BitArray(bit32Collection.ToArray());
         }
 
-        public static BitArray GetRight32Bits(BitArray array64)
+        public BitArray GetRight32Bits(BitArray array64)
         {
             IEnumerable<bool> bit32Collection = array64.Cast<bool>().Skip(32).Take(32);
             return new BitArray(bit32Collection.ToArray());
+        }
+
+        public void RunDes(BitArray bits)
+        {
+            BitArray permutedBits = InitialPermutation(bits);
+            BitArray left32 = GetLeft32Bits(permutedBits);
+            BitArray rigth32 = GetRight32Bits(permutedBits);
+
+            DesFunction(rigth32);
+        }
+
+        public void DesFunction(BitArray rigth32)
+        {
+            BitArray pBoxedRight48 = ApplyPBoxTo32(rigth32);
+
+            BitArray roundKey = keyManager.GenerateRoundKey(0);
+
+            //BitHelper.PrintBitArray(pBoxedRight32);
+
+
+            pBoxedRight48.Xor(roundKey);
+
+            //BitHelper.PrintBitArray(pBoxedRight32);
+            //BitHelper.PrintBitArray(roundKey);
+            //BitHelper.PrintBitArray(pBoxedRight32);
+            //Console.WriteLine(pBoxedRight32.Count);
+
+            SBoxService sBoxService = new SBoxService();
+            sBoxService.ReplaceWithSBoxes(pBoxedRight48);
         }
     }
 }
