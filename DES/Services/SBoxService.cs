@@ -2,8 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using DES.Util;
 
-namespace DES
+namespace DES.Services
 {
     internal class SBoxService
     {
@@ -90,42 +91,47 @@ namespace DES
 
         public BitArray ReplaceWithSBoxes(BitArray bits48)
         {
-            if (bits48.Length != 48)
+            if (bits48.Length != Constants.EXPANDED_SEMIBLOCK)
             {
                 throw new Exception("bits length = " + bits48.Length);
             }
 
+            int vectorLength = 6;
+            int isTrue = 1;
+
             List<bool> bitsList = bits48.Cast<bool>().ToList();
             List<string> bits6StrList = new List<string>();
-            for (int i = 0; i < bitsList.Count; i += 6)
+            for (int i = 0; i < bitsList.Count; i += vectorLength)
             {
-                bits6StrList.Add(string.Concat(bitsList.Skip(i).Take(6).Select(x => x ? "1" : "0")));
+                bits6StrList.Add(string.Concat(bitsList.Skip(i).Take(vectorLength).Select(x => x ? "1" : "0")));
             }
 
             List<bool> fullBoxedList = new List<bool>();
             for (int i = 0; i < bits6StrList.Count; i++)
             {
                 string bits6Str = bits6StrList[i];
-                IEnumerable<bool> sBoxValueList = GetSBoxValue(bits6Str, i).Select(x => x == 1);
+                IEnumerable<bool> sBoxValueList = GetSBoxValue(bits6Str, i).Select(x => x == isTrue);
                 fullBoxedList.AddRange(sBoxValueList);
             }
 
-            //BitHelper.PrintBitArray(fullBoxedList);
             return new BitArray(fullBoxedList.ToArray());
         }
 
         private List<int> GetSBoxValue(string bits6Str, int boxIndex)
         {
+            int scaleOfNotation = 2;
+            int bitBlockSize = 4;
+
             string mStr = string.Empty + bits6Str[0] + bits6Str[bits6Str.Length - 1];
             string lStr = string.Empty + bits6Str[1] + bits6Str[2] + bits6Str[3] + bits6Str[4];
 
-            int m = Convert.ToInt32(mStr, 2);
-            int l = Convert.ToInt32(lStr, 2);
+            int m = Convert.ToInt32(mStr, scaleOfNotation);
+            int l = Convert.ToInt32(lStr, scaleOfNotation);
 
             int sBoxValue = sBoxTable[boxIndex][m, l];
 
-            string shortBinaryValue = Convert.ToString(sBoxValue, 2);
-            string fullBinaryValue = new string('0', 4 - shortBinaryValue.Length) + shortBinaryValue;
+            string shortBinaryValue = Convert.ToString(sBoxValue, scaleOfNotation);
+            string fullBinaryValue = new string('0', bitBlockSize - shortBinaryValue.Length) + shortBinaryValue;
             return fullBinaryValue.Select(x => Int32.Parse(x.ToString())).ToList();
         }
     }

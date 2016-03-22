@@ -3,16 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DES.Util;
 
-namespace DES
+namespace DES.Services
 {
-    class KeyManager
+    internal class KeyService
     {
-        private BitArray keyBits;
+        private readonly BitArray keyBits;
 
         public List<bool> Key64Bits { get; private set; }
 
-        static private List<int> replaceKeyPositions = new List<int>()
+        private static readonly List<int> replaceKeyPositions = new List<int>
         {
             57, 49, 41, 33, 25, 17,  9,  1, 58, 50, 42, 34, 26, 18,
             10,  2, 59, 51, 43, 35, 27, 19, 11,  3, 60, 52, 44, 36,
@@ -20,7 +21,7 @@ namespace DES
             14,  6, 61, 53, 45, 37, 29, 21, 13,  5, 28, 20, 12,  4
         };
 
-        static private Dictionary<int, int> keyShifts = new Dictionary<int, int>()
+        private static readonly Dictionary<int, int> keyShifts = new Dictionary<int, int>
         {
             { 0,  1 },
             { 1,  1 },
@@ -40,7 +41,7 @@ namespace DES
             { 15, 1 }
         };
 
-        static private List<int> keyCompression = new List<int>()
+        private static readonly List<int> keyCompression = new List<int>
         {
             14, 17, 11, 24,  1,  5,  3, 28,
             15,  6, 21, 10, 23, 19, 12,  4,
@@ -52,7 +53,7 @@ namespace DES
 
         private List<bool> replacedKeyList;
 
-        public KeyManager(string key)
+        public KeyService(string key)
         {
             byte[] keyBytes = Encoding.ASCII.GetBytes(key);
             this.keyBits = new BitArray(keyBytes);
@@ -65,12 +66,13 @@ namespace DES
 
         public void Generate64BitKey()
         {
+            int vectorLength = 7;
             this.Key64Bits = this.keyBits.Cast<bool>().ToList();
 
-            for (int i = 0; i < Key64Bits.Count; i += 7)
+            for (int i = 0; i < Key64Bits.Count; i += vectorLength)
             {
-                int countOf1InByte = Key64Bits.Skip(i).Take(7).Count(x => x);
-                int insertPosition = i + 7;
+                int countOf1InByte = Key64Bits.Skip(i).Take(vectorLength).Count(x => x);
+                int insertPosition = i + vectorLength;
 
                 if (countOf1InByte % 2 == 0)
                 {
@@ -105,11 +107,13 @@ namespace DES
                 throw new ArgumentException("Ivalid round index");
             }
 
+            int keyPartLength = 28;
+
             this.Generate64BitKey();
             this.ReplaceAndRemoveKeyBits();
 
-            List<bool> c0 = this.replacedKeyList.Take(28).ToList();
-            List<bool> d0 = this.replacedKeyList.Skip(28).Take(28).ToList();
+            List<bool> c0 = this.replacedKeyList.Take(keyPartLength).ToList();
+            List<bool> d0 = this.replacedKeyList.Skip(keyPartLength).Take(keyPartLength).ToList();
 
             int shiftValue;
             keyShifts.TryGetValue(roundIndex, out shiftValue);
@@ -124,7 +128,7 @@ namespace DES
 
         private BitArray CompressRoundKey(List<bool> array)
         {
-            BitArray bitArray = new BitArray(48);
+            BitArray bitArray = new BitArray(Constants.EXPANDED_SEMIBLOCK);
             for (int i = 0; i < keyCompression.Count; i++)
             {
                 bitArray[i] = array[keyCompression[i] - 1];
