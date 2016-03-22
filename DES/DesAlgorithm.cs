@@ -19,6 +19,14 @@ namespace DES
             63, 55, 47, 39, 31, 23, 15, 7
         };
 
+        private readonly List<int> finalPermutationIndexes = new List<int>
+        {                            
+            40, 8, 48, 16, 56, 24, 64, 32, 39, 7, 47, 15, 55, 23, 63, 31,
+            38, 6, 46, 14, 54, 22, 62, 30, 37, 5, 45, 13, 53, 21, 61, 29,
+            36, 4, 44, 12, 52, 20, 60, 28, 35, 3, 43, 11, 51, 19, 59, 27,
+            34, 2, 42, 10, 50, 18, 58, 26, 33, 1, 41, 9 , 49, 17, 57, 25,
+        };
+
         private readonly List<int> pBoxExpansion = new List<int>
         {
             32,  1,  2,  3,  4,  5,
@@ -62,6 +70,22 @@ namespace DES
             return bitArray;
         }
 
+        public BitArray FinialPermutation(IList<bool> bits)
+        {
+            if (bits.Count != 64)
+            {
+                throw new Exception("bits length = " + bits.Count);
+            }
+
+            BitArray bitArray = new BitArray(64);
+            for (int i = 0; i < bits.Count; i++)
+            {
+                bitArray[i] = bits[finalPermutationIndexes[i] - 1];
+            }
+
+            return bitArray;
+        }
+
         public BitArray ApplyPBoxTo32(BitArray bits)
         {
             if (bits.Length != 32)
@@ -91,7 +115,7 @@ namespace DES
             return new BitArray(bit32Collection.ToArray());
         }
 
-        public void RunDes(BitArray bits)
+        public BitArray RunDes(BitArray bits)
         {
             BitArray permutedBits = this.InitialPermutation(bits);
             BitArray left32 = this.GetLeft32Bits(permutedBits);
@@ -109,6 +133,12 @@ namespace DES
 
             fullBits.AddRange(left32.Cast<bool>());
             fullBits.AddRange(rigth32.Cast<bool>());
+
+            //BitHelper.PrintBitArray();
+            //Console.WriteLine(fullBits.Count(x => x));
+
+            BitArray result = FinialPermutation(fullBits);
+            return result;
         }
 
         public BitArray DesFunction(BitArray rigth32)
