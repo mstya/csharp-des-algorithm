@@ -31,6 +31,14 @@ namespace DES
             28, 29, 30, 31, 32,  1
         };
 
+        private readonly List<int> straightPBoxPositions = new List<int>
+        {
+            16, 7,  20, 21, 29, 12, 28, 17,
+            1,  15, 23, 26, 5,  18, 31, 10,
+            2,  8,  24, 14, 32, 27, 3,  9,
+            19, 13, 30, 6,  22, 11, 4,  25
+        };
+
         private KeyManager keyManager;
 
         public DesAlgorithm(string key)
@@ -85,31 +93,49 @@ namespace DES
 
         public void RunDes(BitArray bits)
         {
-            BitArray permutedBits = InitialPermutation(bits);
-            BitArray left32 = GetLeft32Bits(permutedBits);
-            BitArray rigth32 = GetRight32Bits(permutedBits);
+            BitArray permutedBits = this.InitialPermutation(bits);
+            BitArray left32 = this.GetLeft32Bits(permutedBits);
+            BitArray rigth32 = this.GetRight32Bits(permutedBits);
 
-            DesFunction(rigth32);
+            for (int i = 0; i < 16; i++)
+            {
+                rigth32 = this.DesFunction(rigth32);
+                BitArray left = left32.Xor(rigth32);
+                left32 = rigth32;
+                rigth32 = left;
+            }
+
+            List<bool> fullBits = new List<bool>();
+
+            fullBits.AddRange(left32.Cast<bool>());
+            fullBits.AddRange(rigth32.Cast<bool>());
         }
 
-        public void DesFunction(BitArray rigth32)
+        public BitArray DesFunction(BitArray rigth32)
         {
             BitArray pBoxedRight48 = ApplyPBoxTo32(rigth32);
 
             BitArray roundKey = keyManager.GenerateRoundKey(0);
 
-            //BitHelper.PrintBitArray(pBoxedRight32);
-
-
             pBoxedRight48.Xor(roundKey);
 
-            //BitHelper.PrintBitArray(pBoxedRight32);
-            //BitHelper.PrintBitArray(roundKey);
-            //BitHelper.PrintBitArray(pBoxedRight32);
-            //Console.WriteLine(pBoxedRight32.Count);
-
             SBoxService sBoxService = new SBoxService();
-            sBoxService.ReplaceWithSBoxes(pBoxedRight48);
+            BitArray sBoxedArray = sBoxService.ReplaceWithSBoxes(pBoxedRight48);
+
+            sBoxedArray = this.ApplyStraightPBox(sBoxedArray);
+
+            return sBoxedArray;
+        }
+
+        public BitArray ApplyStraightPBox(BitArray bits)
+        {
+            bool[] pBoxedBits = new bool[32];
+            for (int i = 0; i < straightPBoxPositions.Count; i++)
+            {
+                pBoxedBits[i] = bits[straightPBoxPositions[i] - 1];
+            }
+
+            return new BitArray(pBoxedBits);
         }
     }
 }

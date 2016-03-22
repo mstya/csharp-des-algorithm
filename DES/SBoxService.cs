@@ -102,16 +102,16 @@ namespace DES
                 bits6StrList.Add(string.Concat(bitsList.Skip(i).Take(6).Select(x => x ? "1" : "0")));
             }
 
-            List<int> fullBoxedList  =new List<int>();
+            List<bool> fullBoxedList = new List<bool>();
             for (int i = 0; i < bits6StrList.Count; i++)
             {
                 string bits6Str = bits6StrList[i];
-                List<int> sBoxValueList = GetSBoxValue(bits6Str, i);
+                IEnumerable<bool> sBoxValueList = GetSBoxValue(bits6Str, i).Select(x => x == 1);
                 fullBoxedList.AddRange(sBoxValueList);
             }
 
-            BitHelper.PrintBitArray(fullBoxedList);
-            return null;
+            //BitHelper.PrintBitArray(fullBoxedList);
+            return new BitArray(fullBoxedList.ToArray());
         }
 
         private List<int> GetSBoxValue(string bits6Str, int boxIndex)
