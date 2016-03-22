@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Text;
+using DES.Services;
 
 namespace DES
 {
@@ -8,34 +9,44 @@ namespace DES
     {
         static void Main(string[] args)
         {
-            //KeyService manager = new KeyService("1234567");
+            //byte[] asciiKey = Encoding.ASCII.GetBytes("1234567");
+            //KeyService manager = new KeyService(Encoding.ASCII.GetString(asciiKey));
+            //BitArray array = manager.GenerateRoundKey(0);
+            //BitHelper.PrintBitArray(array);
+            //BitHelper.PrintBitArray(manager.Key64Bits);
             //BitArray roundKey = manager.GenerateRoundKey(0);
 
             //Console.WriteLine(roundKey.Count);
 
-            string testText = "testtest";
-            Console.WriteLine(new BitArray(Encoding.ASCII.GetBytes(testText)).Count);
-         //   return;
-            //bool[] bitsArray =
-            //{
-            //    false, false, false, false, false, false, false, false,
-            //    false, false, false, false, false, false, true, false,
-            //    false, false, false, false, false, false, false, false,
-            //    false, false, false, false, false, false, false, false,
-            //    false, false, false, false, false, false, false, false,
-            //    false, false, false, false, false, false, false, false,
-            //    false, false, false, false, false, false, false, false,
-            //    false, false, false, false, false, false, false, true
-            //};
-            //bool[] bitsArray = new BitArray(Encoding.ASCII.GetBytes(testText).Ca);
+            //return;
+            //string testText = "AABB09182736CCDD";
+            //Console.WriteLine(new BitArray(Encoding.ASCII.GetBytes(testText)).Count);
+            //return;
+            //   return;
+            bool[] bitsArray =
+            {
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, true, false,
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, true
+            };
+         //   bool[] bitsArray = bitsArray;// new BitArray(Encoding.ASCII.GetBytes(testText).Ca);
 
-            BitArray bits = new BitArray(Encoding.ASCII.GetBytes(testText));
+            BitArray bits = new BitArray(bitsArray);
 
             DesAlgorithm algorithm = new DesAlgorithm("1234567");
             BitArray result = algorithm.RunDes(bits);
 
-            byte[] bytes = BitArrayToByteArray(result);
-            Console.WriteLine(Encoding.Default.GetString(bytes));
+            BitHelper.PrintBitArray(result);
+
+            BitArray initial = algorithm.RunDes(result);
+
+            //    byte[] bytes = BitArrayToByteArray(result);
+            //    Console.WriteLine(Encoding.Default.GetString(bytes));
             //BitHelper.PrintBitArray(result);
 
             //algorithm.ReplaceKeyBits(key);

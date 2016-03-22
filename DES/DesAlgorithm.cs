@@ -44,8 +44,41 @@ namespace DES
 
             for (int i = 0; i < ROUND_AMOUNT; i++)
             {
-                rigth32 = this.DesFunction(rigth32, i);
-                BitArray left = left32.Xor(rigth32);
+                BitArray rigth = this.DesFunction(rigth32, i);
+                BitArray left = left32.Xor(rigth);
+
+                left32 = rigth32;
+                rigth32 = left;
+            }
+
+            List<bool> fullBits = new List<bool>();
+
+            fullBits.AddRange(left32.Cast<bool>());
+            fullBits.AddRange(rigth32.Cast<bool>());
+
+            BitHelper.PrintBitArray(fullBits);
+
+            this.permutationService.FinialPermutation(ref fullBits);
+            BitHelper.PrintBitArray(fullBits);
+
+            return new BitArray(fullBits.ToArray());
+        }
+
+
+        public BitArray RunUnDes(BitArray bits)
+        {
+            List<bool> bitList = bits.Cast<bool>().ToList();
+
+            this.permutationService.InitialPermutation(ref bitList);
+
+            BitArray left32 = this.GetLeft32Bits(bitList);
+            BitArray rigth32 = this.GetRight32Bits(bitList);
+
+            for (int i = 0; i < ROUND_AMOUNT; i++)
+            {
+                BitArray rigth = this.DesFunction(rigth32, i);
+                BitArray left = left32.Xor(rigth);
+
                 left32 = rigth32;
                 rigth32 = left;
             }
@@ -56,6 +89,7 @@ namespace DES
             fullBits.AddRange(rigth32.Cast<bool>());
 
             this.permutationService.FinialPermutation(ref fullBits);
+
             return new BitArray(fullBits.ToArray());
         }
 
@@ -64,7 +98,6 @@ namespace DES
             BitArray pBoxedRight48 = this.pBoxService.ApplyPBoxTo32(rigth32);
 
             BitArray roundKey = keyService.GenerateRoundKey(roundIndex);
-
             pBoxedRight48.Xor(roundKey);
 
             SBoxService sBoxService = new SBoxService();
