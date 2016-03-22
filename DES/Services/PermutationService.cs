@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using DES.Interfaces;
 
 namespace DES.Services
 {
-    public class PermutationService
+    public class PermutationService : IPermutationService
     {
         private const int PERMUTATION_BITS_AMOUNT = 64;
 

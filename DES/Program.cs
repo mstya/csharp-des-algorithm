@@ -13,30 +13,30 @@ namespace DES
 
             //Console.WriteLine(roundKey.Count);
 
-            bool[] bitsArray =
-            {
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, true, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, true
-            };
+            string testText = "testtest";
+            Console.WriteLine(new BitArray(Encoding.ASCII.GetBytes(testText)).Count);
+         //   return;
+            //bool[] bitsArray =
+            //{
+            //    false, false, false, false, false, false, false, false,
+            //    false, false, false, false, false, false, true, false,
+            //    false, false, false, false, false, false, false, false,
+            //    false, false, false, false, false, false, false, false,
+            //    false, false, false, false, false, false, false, false,
+            //    false, false, false, false, false, false, false, false,
+            //    false, false, false, false, false, false, false, false,
+            //    false, false, false, false, false, false, false, true
+            //};
+            //bool[] bitsArray = new BitArray(Encoding.ASCII.GetBytes(testText).Ca);
 
-            BitArray bits = new BitArray(bitsArray);
-            //byte[] bytes2 = BitArrayToByteArray(bits);
-            //Console.WriteLine(Encoding.Default.GetString(bytes2));
-            //BitHelper.PrintBitArray(bits);
+            BitArray bits = new BitArray(Encoding.ASCII.GetBytes(testText));
 
             DesAlgorithm algorithm = new DesAlgorithm("1234567");
-            //BitArray key = algorithm.InitialPermutation(bits);
             BitArray result = algorithm.RunDes(bits);
 
             byte[] bytes = BitArrayToByteArray(result);
             Console.WriteLine(Encoding.Default.GetString(bytes));
-            BitHelper.PrintBitArray(result);
+            //BitHelper.PrintBitArray(result);
 
             //algorithm.ReplaceKeyBits(key);
         }
