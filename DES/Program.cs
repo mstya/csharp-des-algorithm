@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using DES.Extensions;
 
@@ -9,31 +10,17 @@ namespace DES
     {
         static void Main(string[] args)
         {
-            string data = "testtest";
-            byte[] dataBytes = Encoding.ASCII.GetBytes(data);
-            BitArray dataBits = new BitArray(dataBytes);
+            string data = "testtesttesttest0123123 as";
 
-            Console.WriteLine("Data: {0}", data);
-            Console.Write("Data bits: ");
-            dataBits.PrintBitArray();
+            Console.WriteLine(data);
 
-            DesAlgorithm algorithm = new DesAlgorithm("1234567");
-            BitArray encoded = algorithm.RunDes(dataBits);
+            DesClient client = new DesClient("1234567");
 
-            Console.Write("Encoded data bits: ");
-            encoded.PrintBitArray();
-            
-            BitArray decoded = algorithm.RunUnDes(encoded);
+            string encryptedData = client.Encrypt(data);
+            Console.WriteLine(encryptedData);
 
-            Console.Write("Decoded data bits: ");
-            decoded.PrintBitArray();
-
-            byte[] bytes = decoded.ToByteArray();
-
-            Console.Write("Decoded data: ");
-            Console.Write(Encoding.Default.GetString(bytes));
-
-            Console.WriteLine();
+            string decryptedData = client.Decrypt(encryptedData);
+            Console.WriteLine(decryptedData);
         }
     }
 }

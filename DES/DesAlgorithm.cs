@@ -24,6 +24,7 @@ namespace DES
             this.keyService = new KeyService(key);
             this.permutationService = new PermutationService();
             this.pBoxService = new PBoxService();
+            this.GenerateKeys();
         }
 
         private List<bool> GetLeft32Bits(IList<bool> list64)
@@ -44,11 +45,9 @@ namespace DES
             }
         }
 
-        public BitArray RunDes(BitArray bits)
+        public List<bool> RunDes(IList<bool> bits)
         {
-            this.GenerateKeys();
-
-            List<bool> bitList = bits.Cast<bool>().ToList();
+            List<bool> bitList = bits.ToList();
 
             this.permutationService.InitialPermutation(ref bitList);
 
@@ -69,12 +68,12 @@ namespace DES
 
             this.permutationService.FinialPermutation(ref fullBits);
 
-            return new BitArray(fullBits.ToArray());
+            return fullBits;
         }
 
-        public BitArray RunUnDes(BitArray bits)
+        public List<bool> RunUnDes(IList<bool> bits)
         {
-            List<bool> bitList = bits.Cast<bool>().ToList();
+            List<bool> bitList = bits.ToList();
 
             this.permutationService.InitialPermutation(ref bitList);
 
@@ -95,7 +94,7 @@ namespace DES
 
             this.permutationService.FinialPermutation(ref fullBits);
 
-            return new BitArray(fullBits.ToArray());
+            return fullBits;
         }
 
         private List<bool> DesFunction(IList<bool> rigth32, IList<bool> roundKey)

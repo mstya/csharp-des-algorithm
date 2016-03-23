@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DesClient.cs" />
     <Compile Include="Extensions\BitArrayExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="DesAlgorithm.cs" />
