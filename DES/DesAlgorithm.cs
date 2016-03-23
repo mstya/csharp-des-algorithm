@@ -16,6 +16,8 @@ namespace DES
 
         private readonly PBoxService pBoxService;
 
+        private readonly List<BitArray> roundKeys = new List<BitArray>(); 
+
         public DesAlgorithm(string key)
         {
             this.keyService = new KeyService(key);
@@ -33,8 +35,18 @@ namespace DES
             return new BitArray(list64.Skip(Constants.SEMIBLOCK_LENGTH).Take(Constants.SEMIBLOCK_LENGTH).ToArray());
         }
 
+        private void GenerateKeys()
+        {
+            for (var i = 0; i < ROUND_AMOUNT; i++)
+            {
+                this.roundKeys.Add(this.keyService.GenerateRoundKey(i));
+            }
+        }
+
         public BitArray RunDes(BitArray bits)
         {
+            this.GenerateKeys();
+
             List<bool> bitList = bits.Cast<bool>().ToList();
 
             this.permutationService.InitialPermutation(ref bitList);
@@ -44,26 +56,20 @@ namespace DES
 
             for (int i = 0; i < ROUND_AMOUNT; i++)
             {
-                BitArray rigth = this.DesFunction(rigth32, i);
-                BitArray left = left32.Xor(rigth);
-
+                BitArray temp = (BitArray)left32.Clone();
                 left32 = rigth32;
-                rigth32 = left;
+                rigth32 = temp.Xor(this.DesFunction(rigth32, this.roundKeys[i]));
             }
 
             List<bool> fullBits = new List<bool>();
 
-            fullBits.AddRange(left32.Cast<bool>());
             fullBits.AddRange(rigth32.Cast<bool>());
-
-            BitHelper.PrintBitArray(fullBits);
+            fullBits.AddRange(left32.Cast<bool>());
 
             this.permutationService.FinialPermutation(ref fullBits);
-            BitHelper.PrintBitArray(fullBits);
 
             return new BitArray(fullBits.ToArray());
         }
-
 
         public BitArray RunUnDes(BitArray bits)
         {
@@ -76,28 +82,25 @@ namespace DES
 
             for (int i = 0; i < ROUND_AMOUNT; i++)
             {
-                BitArray rigth = this.DesFunction(rigth32, i);
-                BitArray left = left32.Xor(rigth);
-
+                BitArray temp = (BitArray)left32.Clone();
                 left32 = rigth32;
-                rigth32 = left;
+                rigth32 = temp.Xor(this.DesFunction(rigth32, this.roundKeys[15 - i]));
             }
 
             List<bool> fullBits = new List<bool>();
 
-            fullBits.AddRange(left32.Cast<bool>());
             fullBits.AddRange(rigth32.Cast<bool>());
+            fullBits.AddRange(left32.Cast<bool>());
 
             this.permutationService.FinialPermutation(ref fullBits);
 
             return new BitArray(fullBits.ToArray());
         }
 
-        public BitArray DesFunction(BitArray rigth32, int roundIndex)
+        public BitArray DesFunction(BitArray rigth32, BitArray roundKey)
         {
             BitArray pBoxedRight48 = this.pBoxService.ApplyPBoxTo32(rigth32);
 
-            BitArray roundKey = keyService.GenerateRoundKey(roundIndex);
             pBoxedRight48.Xor(roundKey);
 
             SBoxService sBoxService = new SBoxService();

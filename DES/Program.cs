@@ -23,6 +23,9 @@ namespace DES
             //Console.WriteLine(new BitArray(Encoding.ASCII.GetBytes(testText)).Count);
             //return;
             //   return;
+
+
+
             bool[] bitsArray =
             {
                 false, false, false, false, false, false, false, false,
@@ -34,16 +37,20 @@ namespace DES
                 false, false, false, false, false, false, false, false,
                 false, false, false, false, false, false, false, true
             };
+
          //   bool[] bitsArray = bitsArray;// new BitArray(Encoding.ASCII.GetBytes(testText).Ca);
 
             BitArray bits = new BitArray(bitsArray);
-
+            BitHelper.PrintBitArray(bits);
             DesAlgorithm algorithm = new DesAlgorithm("1234567");
             BitArray result = algorithm.RunDes(bits);
 
             BitHelper.PrintBitArray(result);
 
-            BitArray initial = algorithm.RunDes(result);
+            BitArray initial = algorithm.RunUnDes(result);
+            BitHelper.PrintBitArray(initial);
+
+            //   BitArray initial = algorithm.RunDes(result);
 
             //    byte[] bytes = BitArrayToByteArray(result);
             //    Console.WriteLine(Encoding.Default.GetString(bytes));
