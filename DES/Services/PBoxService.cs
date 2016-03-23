@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using DES.Interfaces;
 using DES.Util;
 
 namespace DES.Services
 {
-    public class PBoxService
+    public class PBoxService : IPBoxService
     {
-        private const int EXPANDED_SEMIBLOCK = 48;
-
         private readonly List<int> pBoxExpansion = new List<int>
         {
             32,  1,  2,  3,  4,  5,
@@ -29,31 +27,31 @@ namespace DES.Services
             19, 13, 30, 6,  22, 11, 4,  25
         };
 
-        public BitArray ApplyPBoxTo32(BitArray bits)
+        public List<bool> ApplyPBoxTo32(IList<bool> bits)
         {
-            if (bits.Length != Constants.SEMIBLOCK_LENGTH)
+            if (bits.Count != Constants.SEMIBLOCK_LENGTH)
             {
-                throw new Exception("bits length = " + bits.Length);
+                throw new Exception("bits length = " + bits.Count);
             }
 
-            bool[] pBoxedBits = new bool[EXPANDED_SEMIBLOCK];
+            List<bool> pBoxedBits = new List<bool>();
             for (int i = 0; i < pBoxExpansion.Count; i++)
             {
-                pBoxedBits[i] = bits[pBoxExpansion[i] - 1];
+                pBoxedBits.Add(bits[pBoxExpansion[i] - 1]);
             }
 
-            return new BitArray(pBoxedBits);
+            return pBoxedBits;
         }
 
-        public BitArray ApplyStraightPBox(BitArray bits)
+        public List<bool> ApplyStraightPBox(IList<bool> bits)
         {
-            bool[] pBoxedBits = new bool[Constants.SEMIBLOCK_LENGTH];
+            List<bool> pBoxedBits = new List<bool>();
             for (int i = 0; i < straightPBoxPositions.Count; i++)
             {
-                pBoxedBits[i] = bits[straightPBoxPositions[i] - 1];
+                pBoxedBits.Add(bits[straightPBoxPositions[i] - 1]);
             }
 
-            return new BitArray(pBoxedBits);
+            return pBoxedBits;
         }
     }
 }

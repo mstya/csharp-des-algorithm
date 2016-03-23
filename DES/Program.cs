@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Text;
-using DES.Services;
+using DES.Extensions;
 
 namespace DES
 {
@@ -9,61 +9,31 @@ namespace DES
     {
         static void Main(string[] args)
         {
-            //byte[] asciiKey = Encoding.ASCII.GetBytes("1234567");
-            //KeyService manager = new KeyService(Encoding.ASCII.GetString(asciiKey));
-            //BitArray array = manager.GenerateRoundKey(0);
-            //BitHelper.PrintBitArray(array);
-            //BitHelper.PrintBitArray(manager.Key64Bits);
-            //BitArray roundKey = manager.GenerateRoundKey(0);
+            string data = "testtest";
+            byte[] dataBytes = Encoding.ASCII.GetBytes(data);
+            BitArray dataBits = new BitArray(dataBytes);
 
-            //Console.WriteLine(roundKey.Count);
+            Console.WriteLine("Data: {0}", data);
+            Console.Write("Data bits: ");
+            dataBits.PrintBitArray();
 
-            //return;
-            //string testText = "AABB09182736CCDD";
-            //Console.WriteLine(new BitArray(Encoding.ASCII.GetBytes(testText)).Count);
-            //return;
-            //   return;
-
-
-
-            bool[] bitsArray =
-            {
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, true, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, true
-            };
-
-         //   bool[] bitsArray = bitsArray;// new BitArray(Encoding.ASCII.GetBytes(testText).Ca);
-
-            BitArray bits = new BitArray(bitsArray);
-            BitHelper.PrintBitArray(bits);
             DesAlgorithm algorithm = new DesAlgorithm("1234567");
-            BitArray result = algorithm.RunDes(bits);
+            BitArray encoded = algorithm.RunDes(dataBits);
 
-            BitHelper.PrintBitArray(result);
+            Console.Write("Encoded data bits: ");
+            encoded.PrintBitArray();
+            
+            BitArray decoded = algorithm.RunUnDes(encoded);
 
-            BitArray initial = algorithm.RunUnDes(result);
-            BitHelper.PrintBitArray(initial);
+            Console.Write("Decoded data bits: ");
+            decoded.PrintBitArray();
 
-            //   BitArray initial = algorithm.RunDes(result);
+            byte[] bytes = decoded.ToByteArray();
 
-            //    byte[] bytes = BitArrayToByteArray(result);
-            //    Console.WriteLine(Encoding.Default.GetString(bytes));
-            //BitHelper.PrintBitArray(result);
+            Console.Write("Decoded data: ");
+            Console.Write(Encoding.Default.GetString(bytes));
 
-            //algorithm.ReplaceKeyBits(key);
-        }
-
-        public static byte[] BitArrayToByteArray(BitArray bits)
-        {
-            byte[] ret = new byte[(bits.Length - 1) / 8 + 1];
-            bits.CopyTo(ret, 0);
-            return ret;
+            Console.WriteLine();
         }
     }
 }

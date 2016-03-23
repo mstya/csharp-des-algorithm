@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using DES.Interfaces;
 using DES.Util;
 
 namespace DES.Services
 {
-    internal class SBoxService
+    internal class SBoxService : ISBoxService
     {
         private readonly int[,] sBox1 =
         {
@@ -89,21 +89,20 @@ namespace DES.Services
             };
         }
 
-        public BitArray ReplaceWithSBoxes(BitArray bits48)
+        public List<bool> ReplaceWithSBoxes(IList<bool> bits48)
         {
-            if (bits48.Length != Constants.EXPANDED_SEMIBLOCK)
+            if (bits48.Count != Constants.EXPANDED_SEMIBLOCK)
             {
-                throw new Exception("bits length = " + bits48.Length);
+                throw new Exception("bits length = " + bits48.Count);
             }
 
             int vectorLength = 6;
             int isTrue = 1;
 
-            List<bool> bitsList = bits48.Cast<bool>().ToList();
             List<string> bits6StrList = new List<string>();
-            for (int i = 0; i < bitsList.Count; i += vectorLength)
+            for (int i = 0; i < bits48.Count; i += vectorLength)
             {
-                bits6StrList.Add(string.Concat(bitsList.Skip(i).Take(vectorLength).Select(x => x ? "1" : "0")));
+                bits6StrList.Add(string.Concat(bits48.Skip(i).Take(vectorLength).Select(x => x ? "1" : "0")));
             }
 
             List<bool> fullBoxedList = new List<bool>();
@@ -114,7 +113,7 @@ namespace DES.Services
                 fullBoxedList.AddRange(sBoxValueList);
             }
 
-            return new BitArray(fullBoxedList.ToArray());
+            return fullBoxedList;
         }
 
         private List<int> GetSBoxValue(string bits6Str, int boxIndex)
@@ -132,7 +131,7 @@ namespace DES.Services
 
             string shortBinaryValue = Convert.ToString(sBoxValue, scaleOfNotation);
             string fullBinaryValue = new string('0', bitBlockSize - shortBinaryValue.Length) + shortBinaryValue;
-            return fullBinaryValue.Select(x => Int32.Parse(x.ToString())).ToList();
+            return fullBinaryValue.Select(x => int.Parse(x.ToString())).ToList();
         }
     }
 }

@@ -43,9 +43,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Helpers\BitHelper.cs" />
+    <Compile Include="Extensions\BitArrayExtensions.cs" />
+    <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="DesAlgorithm.cs" />
+    <Compile Include="Interfaces\IKeyService.cs" />
+    <Compile Include="Interfaces\IPBoxService.cs" />
     <Compile Include="Interfaces\IPermutationService.cs" />
+    <Compile Include="Interfaces\ISBoxService.cs" />
     <Compile Include="Services\KeyService.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

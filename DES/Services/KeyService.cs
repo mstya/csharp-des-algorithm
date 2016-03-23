@@ -3,12 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DES.Util;
+using DES.Extensions;
+using DES.Interfaces;
 
 namespace DES.Services
 {
-    internal class KeyService
+    internal class KeyService : IKeyService
     {
+        private const int KEY_LENGTH = 56;
+
         private readonly BitArray keyBits;
 
         public List<bool> Key64Bits { get; private set; }
@@ -58,36 +61,30 @@ namespace DES.Services
             byte[] keyBytes = Encoding.ASCII.GetBytes(key);
             this.keyBits = new BitArray(keyBytes);
 
-            if (this.keyBits.Count != 56)
+            if (this.keyBits.Count != KEY_LENGTH)
             {
                 throw new Exception("key bits length = " + this.keyBits.Count);
             }
         }
 
-        public void Generate64BitKey()
+        private void Generate64BitKey()
         {
             int vectorLength = 7;
             this.Key64Bits = this.keyBits.Cast<bool>().ToList();
+            int count = Key64Bits.Count;
 
-            for (int i = 0; i < Key64Bits.Count; i += vectorLength)
+            for (int i = 0; i < count; i += vectorLength)
             {
                 int countOf1InByte = Key64Bits.Skip(i).Take(vectorLength).Count(x => x);
                 int insertPosition = i + vectorLength;
 
-                if (countOf1InByte % 2 == 0)
-                {
-                    Key64Bits.Insert(insertPosition, true);
-                }
-                else
-                {
-                    Key64Bits.Insert(insertPosition, false);
-                }
+                Key64Bits.Insert(insertPosition, countOf1InByte%2 == 0);
 
                 i += 1;
             }
         }
 
-        public void ReplaceAndRemoveKeyBits()
+        private void ReplaceAndRemoveKeyBits()
         {
             List<bool> bitList = new List<bool>();
 
@@ -100,7 +97,7 @@ namespace DES.Services
             this.replacedKeyList = bitList;
         }
 
-        public BitArray GenerateRoundKey(int roundIndex)
+        public List<bool> GenerateRoundKey(int roundIndex)
         {
             if (roundIndex < 0 || roundIndex > 16)
             {
@@ -118,20 +115,20 @@ namespace DES.Services
             int shiftValue;
             keyShifts.TryGetValue(roundIndex, out shiftValue);
 
-            List<bool> c0Shifted = BitHelper.ShiftLeft(c0, shiftValue);
-            List<bool> d0Shifted = BitHelper.ShiftLeft(d0, shiftValue);
+            List<bool> c0Shifted = c0.ShiftLeft(shiftValue);
+            List<bool> d0Shifted = d0.ShiftLeft(shiftValue);
 
             c0Shifted.AddRange(d0Shifted);
 
             return this.CompressRoundKey(c0Shifted);
         }
 
-        private BitArray CompressRoundKey(List<bool> array)
+        private List<bool> CompressRoundKey(IList<bool> array)
         {
-            BitArray bitArray = new BitArray(Constants.EXPANDED_SEMIBLOCK);
+            List<bool> bitArray = new List<bool>();
             for (int i = 0; i < keyCompression.Count; i++)
             {
-                bitArray[i] = array[keyCompression[i] - 1];
+                bitArray.Add(array[keyCompression[i] - 1]);
             }
 
             return bitArray;

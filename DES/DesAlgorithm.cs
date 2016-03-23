@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using DES.Extensions;
 using DES.Services;
 using DES.Util;
 
@@ -16,7 +17,7 @@ namespace DES
 
         private readonly PBoxService pBoxService;
 
-        private readonly List<BitArray> roundKeys = new List<BitArray>(); 
+        private readonly List<List<bool>> roundKeys = new List<List<bool>>(); 
 
         public DesAlgorithm(string key)
         {
@@ -25,14 +26,14 @@ namespace DES
             this.pBoxService = new PBoxService();
         }
 
-        public BitArray GetLeft32Bits(IList<bool> list64)
+        private List<bool> GetLeft32Bits(IList<bool> list64)
         {
-            return new BitArray(list64.Take(Constants.SEMIBLOCK_LENGTH).ToArray());
+            return list64.Take(Constants.SEMIBLOCK_LENGTH).ToList();
         }
 
-        public BitArray GetRight32Bits(IList<bool> list64)
+        private List<bool> GetRight32Bits(IList<bool> list64)
         {
-            return new BitArray(list64.Skip(Constants.SEMIBLOCK_LENGTH).Take(Constants.SEMIBLOCK_LENGTH).ToArray());
+            return list64.Skip(Constants.SEMIBLOCK_LENGTH).Take(Constants.SEMIBLOCK_LENGTH).ToList();
         }
 
         private void GenerateKeys()
@@ -51,20 +52,20 @@ namespace DES
 
             this.permutationService.InitialPermutation(ref bitList);
 
-            BitArray left32 = this.GetLeft32Bits(bitList);
-            BitArray rigth32 = this.GetRight32Bits(bitList);
+            List<bool> left32 = this.GetLeft32Bits(bitList);
+            List<bool> rigth32 = this.GetRight32Bits(bitList);
 
             for (int i = 0; i < ROUND_AMOUNT; i++)
             {
-                BitArray temp = (BitArray)left32.Clone();
+                List<bool> temp = left32.ToList();
                 left32 = rigth32;
                 rigth32 = temp.Xor(this.DesFunction(rigth32, this.roundKeys[i]));
             }
 
             List<bool> fullBits = new List<bool>();
 
-            fullBits.AddRange(rigth32.Cast<bool>());
-            fullBits.AddRange(left32.Cast<bool>());
+            fullBits.AddRange(rigth32);
+            fullBits.AddRange(left32);
 
             this.permutationService.FinialPermutation(ref fullBits);
 
@@ -77,38 +78,36 @@ namespace DES
 
             this.permutationService.InitialPermutation(ref bitList);
 
-            BitArray left32 = this.GetLeft32Bits(bitList);
-            BitArray rigth32 = this.GetRight32Bits(bitList);
+            List<bool> left32 = this.GetLeft32Bits(bitList);
+            List<bool> rigth32 = this.GetRight32Bits(bitList);
 
             for (int i = 0; i < ROUND_AMOUNT; i++)
             {
-                BitArray temp = (BitArray)left32.Clone();
+                List<bool> temp = left32.ToList();
                 left32 = rigth32;
                 rigth32 = temp.Xor(this.DesFunction(rigth32, this.roundKeys[15 - i]));
             }
 
             List<bool> fullBits = new List<bool>();
 
-            fullBits.AddRange(rigth32.Cast<bool>());
-            fullBits.AddRange(left32.Cast<bool>());
+            fullBits.AddRange(rigth32);
+            fullBits.AddRange(left32);
 
             this.permutationService.FinialPermutation(ref fullBits);
 
             return new BitArray(fullBits.ToArray());
         }
 
-        public BitArray DesFunction(BitArray rigth32, BitArray roundKey)
+        private List<bool> DesFunction(IList<bool> rigth32, IList<bool> roundKey)
         {
-            BitArray pBoxedRight48 = this.pBoxService.ApplyPBoxTo32(rigth32);
+            List<bool> pBoxedRight48 = this.pBoxService.ApplyPBoxTo32(rigth32);
 
-            pBoxedRight48.Xor(roundKey);
+            pBoxedRight48 = pBoxedRight48.Xor(roundKey);
 
             SBoxService sBoxService = new SBoxService();
-            BitArray sBoxedArray = sBoxService.ReplaceWithSBoxes(pBoxedRight48);
+            List<bool> sBoxedArray = sBoxService.ReplaceWithSBoxes(pBoxedRight48);
 
-            sBoxedArray = this.pBoxService.ApplyStraightPBox(sBoxedArray);
-
-            return sBoxedArray;
+            return this.pBoxService.ApplyStraightPBox(sBoxedArray);
         }
     }
 }
